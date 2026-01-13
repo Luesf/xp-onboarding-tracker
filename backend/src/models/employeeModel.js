@@ -58,7 +58,40 @@ const employeeModel = {
         const query = 'SELECT * FROM employees WHERE name ILIKE $1 ORDER BY name';
         const result = await pool.query(query, [`%${searchTerm}%`]);
         return result.rows;
-    }
+    },
+    bulkUpdateStatus: async (employeeIds, status) => {
+        const query = `
+            UPDATE employees
+            SET current_status = $1,
+                status_updated_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ANY($2)
+            RETURNING *
+        `;
+        const result = await pool.query(query, [status, employeeIds]);
+        return result.rows;
+    },
+    getAllWithNotes: async () => {
+        const query = `
+            SELECT
+                e.*,
+                (
+                    SELECT json_build_object(
+                        'id', n.id,
+                        'content', n.content,
+                        'created_at', n.created_at
+                    )
+                    FROM notes n
+                    WHERE n.employee_id = e.id
+                    ORDER BY n.created_at DESC
+                    LIMIT 1
+                ) AS latest_note
+            FROM employees e
+            ORDER BY e.created_at DESC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    }           
 };
 
 module.exports = employeeModel;

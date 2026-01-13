@@ -4,6 +4,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const employeeRoutes = require('./routes/employeeRoutes');
+const statusHistoryRoutes = require('./routes/statusHistoryRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +25,8 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/employees', employeeRoutes);
+app.use('/api/history', statusHistoryRoutes);
+app.use('/api/notes', noteRoutes);
 
 app.get('/api/employees', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running'});

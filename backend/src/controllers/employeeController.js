@@ -123,6 +123,32 @@ const employeeController = {
             console.error('Error filtering employees:', error);
             res.status(500).json({ error: 'Failed to filter employees' });
         }
+    },
+    bulkUpdateStatus: async (req, res) => {
+        try {
+            const { employeeIds, status } = req.body;
+            if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
+                return res.status(400).json({ error: 'Employee IDs array is required' });
+            }
+            if (!status) {
+                return res.status(400).json({ error: 'Status is required' });
+            }
+            const updatedEmployees = await employeeModel.bulkUpdateStatus(employeeIds, status);
+            req.io.emit('bulkStatusUpdate', updatedEmployees);
+            res.json({ message: `Successfully updated ${updatedEmployees.length}`, employees: updatedEmployees });
+        } catch (error) {
+            console.error('Error bulk updating status:', error);
+            res.status(500).json({ error: 'Failed to bulk update status' });
+        }
+    },
+    getAllEmployeesWithNotes: async (req, res) => {
+        try {
+            const employees = await employeeModel.getAllWithNotes();
+            res.json(employees);
+        } catch (error) {
+            console.error('Error fetching employees with notes:', error);
+            res.status(500).json({ error: 'Failed to fetch employees' });
+        }
     }
 };
 
